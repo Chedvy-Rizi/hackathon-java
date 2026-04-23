@@ -1,18 +1,14 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Scenario;
 import com.example.demo.model.SimulationResult;
 import com.example.demo.model.User;
 import com.example.demo.repository.ScenarioAssignmentRepository;
 import com.example.demo.repository.SimulationResultRepository;
-import com.example.demo.repository.ScenarioRepository; // הוספתי ייבוא
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@CrossOrigin(origins = "*") 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/simulation")
 public class SimulationController {
@@ -26,31 +22,34 @@ public class SimulationController {
     @Autowired
     private ScenarioAssignmentRepository assignmentRepository;
 
-    @Autowired
-    private ScenarioRepository scenarioRepository; // הוספתי כדי לשלוף תרחישים
-
-    // פותר את שגיאת ה-404 ב-Dashboard
-    @GetMapping("/scenarios")
-    public List<Scenario> getAllScenarios() {
-        return scenarioRepository.findAll();
-    }
-
     @PostMapping("/save")
     public SimulationResult saveResult(@RequestBody SimulationResult result, @RequestParam Long assignmentId) {
+        // מציאת המשימה ששויכה לנציג
+        return assignmentRepository.findById(assignmentId).map(assignment -> {
 
-        SimulationResult saved = repository.save(result);
+            // קישור התוצאה לתרחיש האמיתי מתוך המשימה
+            result.setScenario(assignment.getScenario());
 
-        assignmentRepository.findById(assignmentId).ifPresent(assignment -> {
+            // הגדרת מזהה המתאמן מקוד הנציג
+            if (result.getTraineeId() == null) {
+                result.setTraineeId(assignment.getAgent().getAgentCode());
+            }
+
+            // שמירת התוצאה ב-DB
+            SimulationResult saved = repository.save(result);
+
+            // עדכון סטטוס המשימה ל"בוצע"
             assignment.setStatus("COMPLETED");
             assignmentRepository.save(assignment);
-        });
 
-        if (saved.getFinalScore() != null && saved.getFinalScore() >= 90) {
-            userRepository.findByAgentCode(saved.getTraineeId()).ifPresent(user -> {
+            // לוגיקת קידום דרגה (Rank) במידה והציון מעל 90
+            if (saved.getFinalScore() != null && saved.getFinalScore() >= 90) {
+                User user = assignment.getAgent();
                 user.setRank(user.getRank() + 1);
                 userRepository.save(user);
-            });
-        }
-        return saved;
+            }
+
+            return saved;
+        }).orElseThrow(() -> new RuntimeException("Assignment not found: " + assignmentId));
     }
 }
