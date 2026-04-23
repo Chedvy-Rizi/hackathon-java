@@ -59,4 +59,28 @@ public class AgentController {
     public void deleteNote(@PathVariable Long noteId) {
         noteRepository.deleteById(noteId);
     }
+
+
+
+
+
+    @GetMapping("/{id}/tasks")
+    public List<ScenarioAssignment> getTasksById(@PathVariable Long id) {
+        User agent = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("נציג לא נמצא"));
+        return assignmentRepository.findByAgentAndStatus(agent, "PENDING");
+    }
+
+
+
+    // 2. שליפת היסטוריית סימולציות אישית (גם כאן שינינו שיחפש לפי ה-ID לאבטחה)
+    @GetMapping("/{id}/history")
+    public List<SimulationResult> getMyHistory(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("נציג לא נמצא"));
+        // שולף מה-DB את התוצאות לפי קוד הנציג הפנימי של המשתמש
+        return resultRepository.findByTraineeId(user.getAgentCode());
+    }
+
+
 }
