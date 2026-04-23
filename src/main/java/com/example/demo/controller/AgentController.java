@@ -18,12 +18,6 @@ public class AgentController {
     @Autowired
     private SimulationResultRepository resultRepository;
 
-    @GetMapping("/{id}/tasks")
-    public List<ScenarioAssignment> getTasksById(@PathVariable Long id) {
-        User agent = userRepository.findById(id).orElseThrow();
-        return assignmentRepository.findByAgentAndStatus(agent, "PENDING");
-    }
-
     @GetMapping("/{id}/history")
     public List<SimulationResult> getMyHistory(@PathVariable Long id) {
         User user = userRepository.findById(id).orElseThrow();
@@ -33,5 +27,14 @@ public class AgentController {
     @GetMapping("/assignment/{id}")
     public ScenarioAssignment getAssignment(@PathVariable Long id) {
         return assignmentRepository.findById(id).orElseThrow();
+    }
+
+
+    @GetMapping("/{id}/tasks")
+    public List<ScenarioAssignment> getTasksById(@PathVariable Long id) {
+        User agent = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("נציג לא נמצא"));
+        // עכשיו זה שולף את כל המשימות - גם PENDING וגם COMPLETED!
+        return assignmentRepository.findByAgent(agent);
     }
 }
