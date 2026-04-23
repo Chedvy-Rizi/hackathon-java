@@ -14,73 +14,24 @@ public class AgentController {
     @Autowired
     private ScenarioAssignmentRepository assignmentRepository;
     @Autowired
-    private PersonalNoteRepository noteRepository;
-    @Autowired
     private UserRepository userRepository;
     @Autowired
     private SimulationResultRepository resultRepository;
 
-    // 1. שליפת סימולציות ששויכו לנציג ועדיין לא בוצעו
-    @GetMapping("/{agentId}/pending-simulations")
-    public List<ScenarioAssignment> getPendingSimulations(@PathVariable Long agentId) {
-        User agent = userRepository.findById(agentId).orElseThrow();
+    @GetMapping("/{id}/tasks")
+    public List<ScenarioAssignment> getTasksById(@PathVariable Long id) {
+        User agent = userRepository.findById(id).orElseThrow();
         return assignmentRepository.findByAgentAndStatus(agent, "PENDING");
+    }
+
+    @GetMapping("/{id}/history")
+    public List<SimulationResult> getMyHistory(@PathVariable Long id) {
+        User user = userRepository.findById(id).orElseThrow();
+        return resultRepository.findByTraineeId(user.getAgentCode());
     }
 
     @GetMapping("/assignment/{id}")
     public ScenarioAssignment getAssignment(@PathVariable Long id) {
-        return assignmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("משימה לא נמצאה"));
+        return assignmentRepository.findById(id).orElseThrow();
     }
-
-    // 2. שליפת היסטוריית סימולציות אישית
-    @GetMapping("/{agentCode}/history")
-    public List<SimulationResult> getMyHistory(@PathVariable String agentCode) {
-        return resultRepository.findByTraineeId(agentCode);
-    }
-
-    // 3. ניהול פתקים נדבקים
-    @GetMapping("/{agentId}/notes")
-    public List<PersonalNote> getMyNotes(@PathVariable Long agentId) {
-        User agent = userRepository.findById(agentId).orElseThrow();
-        return noteRepository.findByAgent(agent);
-    }
-
-    @PostMapping("/{agentId}/add-note")
-    public PersonalNote addNote(@PathVariable Long agentId, @RequestBody String content) {
-        User agent = userRepository.findById(agentId).orElseThrow();
-        PersonalNote note = new PersonalNote();
-        note.setAgent(agent);
-        note.setContent(content);
-        return noteRepository.save(note);
-    }
-
-    @DeleteMapping("/delete-note/{noteId}")
-    public void deleteNote(@PathVariable Long noteId) {
-        noteRepository.deleteById(noteId);
-    }
-
-
-
-
-
-    @GetMapping("/{id}/tasks")
-    public List<ScenarioAssignment> getTasksById(@PathVariable Long id) {
-        User agent = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("נציג לא נמצא"));
-        return assignmentRepository.findByAgentAndStatus(agent, "PENDING");
-    }
-
-
-
-    // 2. שליפת היסטוריית סימולציות אישית (גם כאן שינינו שיחפש לפי ה-ID לאבטחה)
-    @GetMapping("/{id}/history")
-    public List<SimulationResult> getMyHistory(@PathVariable Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("נציג לא נמצא"));
-        // שולף מה-DB את התוצאות לפי קוד הנציג הפנימי של המשתמש
-        return resultRepository.findByTraineeId(user.getAgentCode());
-    }
-
-
 }

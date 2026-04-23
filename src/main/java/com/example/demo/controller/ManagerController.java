@@ -6,7 +6,6 @@ import com.example.demo.model.User;
 import com.example.demo.repository.ScenarioAssignmentRepository;
 import com.example.demo.repository.ScenarioRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.SimulationResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +24,11 @@ public class ManagerController {
 
     @Autowired
     private ScenarioAssignmentRepository assignmentRepository;
+
+    @GetMapping("/search-agent")
+    public List<User> searchAgent(@RequestParam(defaultValue = "") String name) {
+        return userRepository.findByFullNameContainingIgnoreCaseAndRole(name, "AGENT");
+    }
 
     @PostMapping("/add-agent")
     public User addAgent(@RequestBody User agent) {
