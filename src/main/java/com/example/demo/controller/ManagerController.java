@@ -67,6 +67,15 @@ public class ManagerController {
 
     @DeleteMapping("/delete-scenario/{id}")
     public void deleteScenario(@PathVariable Long id) {
-        scenarioRepository.deleteById(id);
+        Scenario scenario = scenarioRepository.findById(id).orElse(null);
+
+        if (scenario != null) {
+            List<ScenarioAssignment> assignmentsToDelete = assignmentRepository.findAll().stream()
+                    .filter(assignment -> assignment.getScenario() != null && assignment.getScenario().getId().equals(id))
+                    .toList();
+
+            assignmentRepository.deleteAll(assignmentsToDelete);
+            scenarioRepository.deleteById(id);
+        }
     }
 }
