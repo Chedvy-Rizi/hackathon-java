@@ -3,8 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/agent")
@@ -19,9 +21,14 @@ public class AgentController {
     private SimulationResultRepository resultRepository;
 
     @GetMapping("/{id}/history")
-    public List<SimulationResult> getMyHistory(@PathVariable Long id) {
-        User user = userRepository.findById(id).orElseThrow();
-        return resultRepository.findByTraineeId(user.getAgentCode());
+    public ResponseEntity<?> getMyHistory(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        User user = userOpt.get();
+        return ResponseEntity.ok(resultRepository.findByTraineeId(user.getAgentCode()));
     }
 
     @GetMapping("/assignment/{id}")

@@ -64,4 +64,9 @@ public class ManagerController {
         assignment.setStatus("PENDING");
         return assignmentRepository.save(assignment);
     }
+
+    @DeleteMapping("/delete-scenario/{id}")
+    public void deleteScenario(@PathVariable Long id) {
+        scenarioRepository.deleteById(id);
+    }
 }
