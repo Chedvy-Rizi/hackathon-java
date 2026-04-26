@@ -2,9 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Scenario;
 import com.example.demo.model.ScenarioAssignment;
+import com.example.demo.model.SimulationResult;
 import com.example.demo.model.User;
 import com.example.demo.repository.ScenarioAssignmentRepository;
 import com.example.demo.repository.ScenarioRepository;
+import com.example.demo.repository.SimulationResultRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,9 @@ public class ManagerController {
 
     @Autowired
     private ScenarioAssignmentRepository assignmentRepository;
+
+    @Autowired
+    private SimulationResultRepository resultRepository;
 
     @GetMapping("/search-agent")
     public List<User> searchAgent(@RequestParam(defaultValue = "") String name) {
@@ -78,4 +83,10 @@ public class ManagerController {
             scenarioRepository.deleteById(id);
         }
     }
+
+    @GetMapping("/all-results")
+    public List<SimulationResult> getAllResults() {
+        return resultRepository.findAll();
+    }
+
 }
