@@ -43,4 +43,14 @@ public class AgentController {
         // עכשיו זה שולף את כל המשימות - גם PENDING וגם COMPLETED!
         return assignmentRepository.findByAgent(agent);
     }
+
+    @DeleteMapping("/result/{resultId}")
+public ResponseEntity<?> deleteSimulationResult(@PathVariable Long resultId) {
+    try {
+        simulationResultRepository.deleteById(resultId);
+        return ResponseEntity.ok().build();
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body("שגיאה במחיקת הסימולציה");
+    }
+}
 }
