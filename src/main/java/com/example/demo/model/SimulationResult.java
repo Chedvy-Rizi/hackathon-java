@@ -12,10 +12,15 @@ public class SimulationResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // הוספת הקשר לנציג - זה מה שהיה חסר!
+    @ManyToOne
+    @JoinColumn(name = "agent_id")
+    private User agent; 
+
     private String traineeId;
+
     @ManyToOne
     @JoinColumn(name = "scenario_id")
-
     private Scenario scenario;
 
     private Integer finalScore;
