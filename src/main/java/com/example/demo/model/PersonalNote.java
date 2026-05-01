@@ -3,6 +3,7 @@ package com.example.demo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty; // הוספנו את זה כדי לפתור את הבעיה
 
 @Entity
 @Table(name = "personal_notes")
@@ -20,11 +21,17 @@ public class PersonalNote {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    // --- שדות חדשים שהוספנו במיוחד עבור ה-React ---
+    // --- הפתרון: מכריחים את Java לקרוא נכון את ה-JSON מה-React ---
+    @JsonProperty("xPosition")
     private Double xPosition;
+
+    @JsonProperty("yPosition")
     private Double yPosition;
-    private String color;
+
+    @JsonProperty("isDraft")
     private Boolean isDraft;
+
+    private String color;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }
