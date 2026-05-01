@@ -10,7 +10,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") 
-                .allowedOriginPatterns("*") // שימוש ב-Patterns מאפשר לשלב כוכבית עם Credentials
+                // הוספת שני הפורטים המקומיים בצורה מפורשת כדי למנוע בלבול בדפדפן
+                .allowedOrigins("http://localhost:5173", "http://localhost:5174") 
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true); 
