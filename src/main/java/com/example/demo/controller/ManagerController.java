@@ -8,11 +8,14 @@ import com.example.demo.repository.ScenarioAssignmentRepository;
 import com.example.demo.repository.ScenarioRepository;
 import com.example.demo.repository.SimulationResultRepository;
 import com.example.demo.repository.UserRepository;
+
+// --- הייבואים החסרים שהוספתי ---
+import com.example.demo.repository.PersonalNoteRepository; // חובה בשביל למחוק פתקיות
+import org.springframework.http.ResponseEntity; // חובה בשביל להחזיר תשובה ל-React
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -31,6 +34,10 @@ public class ManagerController {
 
     @Autowired
     private SimulationResultRepository resultRepository;
+
+    // הוספתי את זה כדי שהמחיקה תעבוד
+    @Autowired
+    private PersonalNoteRepository personalNoteRepository;
 
     @GetMapping("/search-agent")
     public List<User> searchAgent(@RequestParam(defaultValue = "") String name) {
@@ -91,25 +98,24 @@ public class ManagerController {
         return resultRepository.findAll();
     }
 
-@Transactional // קריטי! מבטיח שאם משהו נכשל, הכל חוזר לאחור ולא נשאר חצי מחוק
-public ResponseEntity<?> deleteAgent(@PathVariable Long id) {
-    try {
-        // 1. מחיקת כל הפתקיות האישיות של הנציג
-        // (אם לא יצרת את הפונקציה הזו ב-Repository, תוסיפי: void deleteByAgentId(Long agentId);)
-        personalNoteRepository.deleteByAgentId(id);
+    // --- הפונקציה המתוקנת של מחיקת נציג ---
+    @DeleteMapping("/agent/{id}") // הוספתי את הניתוב שחסר
+    @Transactional
+    public ResponseEntity<?> deleteAgent(@PathVariable Long id) {
+        try {
+            // 1. מחיקת כל הפתקיות האישיות של הנציג
+            personalNoteRepository.deleteByAgentId(id);
 
-        // 2. מחיקת כל תוצאות הסימולציה וההיסטוריה שלו
-        // (תוסיפי ב-Repository: void deleteByAgentId(Long agentId);)
-        simulationResultRepository.deleteByAgentId(id);
+            // 2. מחיקת כל תוצאות הסימולציה וההיסטוריה שלו 
+            // (תיקנתי ל-resultRepository כדי שיתאים לשם שהגדרת למעלה)
+            resultRepository.deleteByAgentId(id);
 
-        // --- הוספי כאן מחיקות נוספות אם יש (למשל משימות, היסטוריית צ'אט וכו') ---
-
-        // 3. בסוף, מחיקת המשתמש עצמו (הנציג)
-        userRepository.deleteById(id);
-        
-        return ResponseEntity.ok().body("הנציג נמחק בהצלחה");
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body("שגיאה במחיקת הנציג: " + e.getMessage());
+            // 3. בסוף, מחיקת המשתמש עצמו (הנציג)
+            userRepository.deleteById(id);
+            
+            return ResponseEntity.ok().body("הנציג נמחק בהצלחה");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("שגיאה במחיקת הנציג: " + e.getMessage());
+        }
     }
-}
 }
