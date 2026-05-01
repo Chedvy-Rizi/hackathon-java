@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/manager")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ManagerController {
 
     @Autowired
