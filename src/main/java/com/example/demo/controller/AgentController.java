@@ -44,13 +44,14 @@ public class AgentController {
         return assignmentRepository.findByAgent(agent);
     }
 
-    @DeleteMapping("/result/{resultId}")
+@DeleteMapping("/result/{resultId}")
 public ResponseEntity<?> deleteSimulationResult(@PathVariable Long resultId) {
     try {
-        simulationResultRepository.deleteById(resultId);
-        return ResponseEntity.ok().build();
+        // תיקון השם ל-resultRepository (או איך שקראת לזה בתחילת הקובץ)
+        resultRepository.deleteById(resultId);
+        return ResponseEntity.ok().body("הסימולציה נמחקה בהצלחה");
     } catch (Exception e) {
-        return ResponseEntity.badRequest().body("שגיאה במחיקת הסימולציה");
+        return ResponseEntity.badRequest().body("שגיאה במחיקת הסימולציה: " + e.getMessage());
     }
 }
 }
