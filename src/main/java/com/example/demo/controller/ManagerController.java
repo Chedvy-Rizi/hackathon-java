@@ -99,23 +99,26 @@ public class ManagerController {
     }
 
     // --- הפונקציה המתוקנת של מחיקת נציג ---
-    @DeleteMapping("/agent/{id}") // הוספתי את הניתוב שחסר
-    @Transactional
-    public ResponseEntity<?> deleteAgent(@PathVariable Long id) {
-        try {
-            // 1. מחיקת כל הפתקיות האישיות של הנציג
-            personalNoteRepository.deleteByAgentId(id);
+@DeleteMapping("/agent/{id}")
+@Transactional
+public ResponseEntity<?> deleteAgent(@PathVariable Long id) {
+    try {
+        // 1. מחיקת המשימות (זה מה שהיה חסר!)
+        // ודאי שקיים מתודה כזו ב-ScenarioAssignmentRepository
+        assignmentRepository.deleteByAgentId(id); 
 
-            // 2. מחיקת כל תוצאות הסימולציה וההיסטוריה שלו 
-            // (תיקנתי ל-resultRepository כדי שיתאים לשם שהגדרת למעלה)
-            resultRepository.deleteByAgentId(id);
+        // 2. מחיקת כל הפתקיות האישיות
+        personalNoteRepository.deleteByAgentId(id);
 
-            // 3. בסוף, מחיקת המשתמש עצמו (הנציג)
-            userRepository.deleteById(id);
-            
-            return ResponseEntity.ok().body("הנציג נמחק בהצלחה");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("שגיאה במחיקת הנציג: " + e.getMessage());
-        }
+        // 3. מחיקת תוצאות הסימולציה
+        resultRepository.deleteByAgentId(id);
+
+        // 4. עכשיו כשהוא "חופשי" מכל קשר, אפשר למחוק אותו
+        userRepository.deleteById(id);
+        
+        return ResponseEntity.ok().body("הנציג וכל נתוניו נמחקו בהצלחה");
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body("שגיאה במחיקת הנציג: " + e.getMessage());
     }
+}
 }
