@@ -35,23 +35,35 @@ public class AgentController {
         return assignmentRepository.findById(id).orElseThrow();
     }
 
-
     @GetMapping("/{id}/tasks")
     public List<ScenarioAssignment> getTasksById(@PathVariable Long id) {
         User agent = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("נציג לא נמצא"));
-        // עכשיו זה שולף את כל המשימות - גם PENDING וגם COMPLETED!
-        return assignmentRepository.findByAgent(agent);
+        
+        // שולף את המשימות של הנציג, אבל מסנן החוצה את אלו שהוסתרו/הועברו לארכיון
+        return assignmentRepository.findByAgent(agent).stream()
+                .filter(task -> !"ARCHIVED".equals(task.getStatus()))
+                .toList();
     }
 
-@DeleteMapping("/result/{resultId}")
-public ResponseEntity<?> deleteSimulationResult(@PathVariable Long resultId) {
-    try {
-        // תיקון השם ל-resultRepository (או איך שקראת לזה בתחילת הקובץ)
-        resultRepository.deleteById(resultId);
-        return ResponseEntity.ok().body("הסימולציה נמחקה בהצלחה");
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body("שגיאה במחיקת הסימולציה: " + e.getMessage());
+    // --- הפונקציה החדשה שמעבירה לארכיון במקום למחוק ---
+    @PutMapping("/task/{taskId}/archive")
+    public ResponseEntity<?> archiveTask(@PathVariable Long taskId) {
+        try {
+            Optional<ScenarioAssignment> assignmentOpt = assignmentRepository.findById(taskId);
+            
+            if (assignmentOpt.isPresent()) {
+                ScenarioAssignment assignment = assignmentOpt.get();
+                // משנים את הסטטוס לארכיון במקום למחוק, שומרים על הכל בדאטה-בייס
+                assignment.setStatus("ARCHIVED");
+                assignmentRepository.save(assignment);
+                
+                return ResponseEntity.ok().body("המשימה הוסרה מהמסך בהצלחה");
+            }
+            
+            return ResponseEntity.badRequest().body("המשימה לא נמצאה");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("שגיאה בהסרת המשימה: " + e.getMessage());
+        }
     }
-}
 }
